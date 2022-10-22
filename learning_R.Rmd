@@ -1,0 +1,292 @@
+---
+title: "Learning R"
+author: "Analisa Milkey"
+date: "10/20/2022"
+output: html_document
+---
+# set up
+
+```{r}
+# load the data into R
+trait_data <- read.csv("anole.data.csv") # this dataset has information about trait values for different Anole species
+morph_data <- read.csv("ecomorph.csv") # this dataset has information about which species correspond to which ecomorphs (an ecomorph is when different species share the same morphology due to shared habitat)
+```
+
+# R Basics
+
+```{r}
+# let's view the data that we've read in
+View(trait_data)
+View(morph_data)
+
+#or just
+trait_data
+morph_data
+
+# if our data set is large and we just want to view the first few rows, we can use the "Head" function
+head(trait_data)
+head(morph_data)
+
+# if we want to work with a specific column in a dataset, we can grab it using "$"
+trait_data$SVL # this will grab the column that corresponds to the SVL trait
+
+# we can also make this a new object if we want to be able to work with it
+SVL_column <- trait_data$SVL
+SVL_column
+
+# we can also subset specific rows from a dataset
+# in R, [1,] corresponds to the first row of a dataset, while [,1] refers to the first column of a dataset
+# let's pull out the first row and give it a name
+first_row <- trait_data[1,]
+# we can view the object
+first_row
+# let's pull out the second row too
+second_row <- trait_data[2,]
+second_row
+
+# let's pull out some columns again in this way
+first_column <- trait_data[,1]
+first_column
+second_column <- trait_data[,2]
+second_column
+
+# we can also subset a group of rows or columns like this
+first_two_rows <- trait_data[1:2,]
+first_two_rows
+
+last_two_columns <- trait_data[,6:7]
+last_two_columns
+
+# now let's plot a basic scatterplot with two traits from the trait data spreadsheet, SVL and HL
+plot(trait_data$SVL~trait_data$HL)
+
+# let's add axis labels to the scatterplot using xlab and ylab
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL")
+
+# let's also add a title to the scatterplot using main
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL")
+
+# we can also add a linear regression line using abline
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL")
+abline(lm(trait_data$SVL~trait_data$HL))
+
+# we can change the color of the regression line as well
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL")
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+
+# we can also change the shape and size of the points on the scatterplot with pch and cex
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL", pch=16, cex=0.8)
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL", pch=8, cex=1.0)
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+
+# we can change the color of the points as well
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL", pch=16, cex=0.8, col = "blue")
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+
+# now let's try coloring the points by ecomorph type
+# we will need to use the other dataset we read in, morph_data
+# let's add a new column to morph_data that specifies a color for each ecomorph
+# we can add new columns the same way we subset them, using $
+# for example, morph_data$test will add a new column named "test" if there isn't one already named that
+
+morph_data$ecomorphcol[morph_data$ecomorph == "TG"] <- "orange" # here, I am telling R to add a new column named "ecomorph" and to add a cell that says "orange" to every row with the "TG" ecomorph
+morph_data$ecomorphcol[morph_data$ecomorph == "GB"] <- "green"
+morph_data$ecomorphcol[morph_data$ecomorph == "CG"] <- "blue"
+morph_data$ecomorphcol[morph_data$ecomorph == "TC"] <- "red"
+morph_data$ecomorphcol[morph_data$ecomorph == "Tw"] <- "purple"
+morph_data$ecomorphcol[morph_data$ecomorph == "Tr"] <- "pink"
+
+# let's view the new data set
+morph_data
+#There are lots of color options! For more options, check out a options list at http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+# now we can color points on the scatterplot by ecomorph type
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL", pch=16, cex=0.8, col = morph_data$ecomorphcol)
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+
+# this plot would be more informative with a legend, so let's add one that tells  us what the colors of the points mean
+# it's important to make sure the ecomorphs and colors are in the same order as above, otherwise the legend won't match the points
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL", pch=16, cex=0.8, col = morph_data$ecomorphcol)
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+
+# You can change where the legend in the plot is: e.g., "topright", "bottomleft", etc
+
+# lastly, let's save our plot as a pdf
+pdf("SVL_HL.pdf")
+plot(trait_data$SVL~trait_data$HL, xlab = "HL", ylab="SVL", main = "SVL vs HL", pch=16, cex=0.8, col = morph_data$ecomorphcol)
+abline(lm(trait_data$SVL~trait_data$HL), col="red")
+legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+dev.off()
+
+# a pdf of the plot should now appear in your working directory
+
+
+# Questions:
+# Try making a scatterplot for two more traits. Can you add an informative x axis, y axis, and title? Does there seem to be a correlation between the traits?
+# Can you color by ecomorph, using different colors?
+# Can you change the shape and size of the points?
+# Can you export this plot as a pdf?
+# What if I wanted to color ecomorphs TG, GB, and CG the same color? How could you go about doing this?
+```
+
+
+# Principal Components Analysis
+PCA is a technique for reducing the dimensionality of datasets, which makes them easier to interpret.
+
+```{r}
+# let's read in the data again to start fresh
+trait_data <- read.csv("anole.data.csv")
+morph_data <- read.csv("ecomorph.csv")
+
+# we are interested in working with the traits, so we can subset those columns
+# if we were only interested in a few of the traits, we could subset the data further
+trait_data[,2:7]
+
+# run the PCA on columns 2 through 7
+pca <- prcomp(trait_data[,2:7])
+
+# extract the PC scores - these scores show us the coefficients for the different PC axes, creating the PCs
+scores <- pca$x
+
+# let's check the PC loadings - these loadings show us which traits load most strongly on the different axes of variation
+View(pca$rotation)
+# The trait FLL seems to load strongly on PC1, as do traits HL and HLL. The trait TL loads strongly negative on PC2. What trait loads the most strongly on PC3?
+
+# now let's plot PC2 vs PC1
+plot(PC2 ~ PC1, scores)
+
+# this plot would be more interesting if we could color the points by ecomorph
+
+# let's start by assigning colors to each ecomorph in the ecomorph data file we read in earlier
+morph_data$ecomorphcol[morph_data$ecomorph == "TG"] <- "orange"
+morph_data$ecomorphcol[morph_data$ecomorph == "GB"] <- "green"
+morph_data$ecomorphcol[morph_data$ecomorph == "CG"] <- "blue"
+morph_data$ecomorphcol[morph_data$ecomorph == "TC"] <- "red"
+morph_data$ecomorphcol[morph_data$ecomorph == "Tw"] <- "purple"
+morph_data$ecomorphcol[morph_data$ecomorph == "Tr"] <- "pink"
+
+# let's plot PC2 vs PC1 again, using the colors we just assigned to each ecomorph
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0)
+
+# now let's add a legend that tells us what the point colors mean
+# make sure ecomorphs and colors are in the same order as above
+legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+
+# You can change where the legend in the plot is: e.g., "topright", "bottomleft", etc
+
+# let's also add a title
+
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Principal Components Analysis")
+legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+
+# we can also make the axis labels more informative
+# Let's make them display the amount of variation contained in that PC axis
+
+summary(PCA) # look at the "proportion of variance" column
+# We can see that in this dataset, PC1 explains 90.75% of the variance, and PC2 explains 5.67% of the variance.
+
+# we can add those labels to our plot
+
+plot(PC1 ~ PC2, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Principal Components Analysis", xlab = "PC1: 90.75% of variance", ylab = "PC2: 5.67% of variance")
+legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+
+# let's save our plot as a pdf
+pdf("PCA.pdf")
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Principal Components Analysis", xlab = "PC1: 90.75% of variance", ylab = "PC2: 5.67% of variance")
+legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+dev.off()
+
+
+# to think about:
+# How can we plot PC3 vs PC4? How about PC1 vs PC3?
+# What if I only wanted to analyze traits SVL, HL, and HLL in my PCA? How can we do this?
+# What traits seem to be contributing most to variance in this dataset?
+# Do species of the same ecomorph tend to show similar traits? How can we tell? Did we expect ecomorphs to show similar traits? Why does our plot not show this expected result?
+# Can you change the colors we're using in the PCA plot?
+```
+
+
+# Phylogenetic Principal Components Analysis
+
+```{r}
+# let's load in our data again
+# we will also need to read in the Anole phylogenetic tree
+# to read in the tree, we will need to use the package ape
+# if you don't have this package installed, you will need to install it using install.packages("ape")
+# then load it (you have to load it each time you restart R, but you only have to install it once)
+library(ape)
+trait_data <- read.csv("anole.data.csv", row.names=1, header=TRUE)
+morph_data <- read.csv("ecomorph.csv", row.names=1, header=TRUE, stringsAsFactors=TRUE)
+# the argument row.names=1 tells R the row names are in the first column of the data file
+# the argument header=TRUE tells R the first row of the data file contains the column names
+anolis_tree<-read.tree("Anolis.tre")
+
+# let's look at the tree we just read in
+# we can view the tip labels
+anolis_tree$tip.label
+
+# we can also view a summary of the tree
+anolis_tree
+
+# to view the tree, we can use plotTree
+# we will need the package phytools for this (make sure to install it if you don't have it already)
+library(phytools)
+plotTree(anolis_tree)
+
+# this tree is pretty messy and hard to read, so let's make it more readable
+plotTree(anolis_tree, fsize=0.4, lwd=1)
+
+# now let's plot a phylogenetic PCA, where we take into account nonindependence of species when calulating the correlations between different traits
+# first, we need to make sure the anole tree and ecomorph dataset have the same number of species
+check1 <- name.check(anolis_tree, trait_data)
+check1
+# the OK tells us that the tree names match the trait data names
+
+check2 <- name.check(anolis_tree, morph_data)
+check2
+# now we can see that there are some differences between the data and the phylogeny - the ecomorph data has fewer species than the phylogeny
+
+# we need to prune all the taxa that are present in the phylogeny but not in the ecomorph data frame using the function drop.tip
+anolis_tree<-drop.tip(anolis_tree, check2$tree_not_data)
+
+# let's double check that this worked
+check2 <- name.check(anolis_tree, morph_data)
+check2
+
+# now let's drop those names from the trait data by subsetting the taxa we want
+trait_data<-trait_data[anolis_tree$tip.label,]
+
+# let's double check that this worked
+check3 <- name.check(anolis_tree, trait_data)
+check3
+
+# now let's run the phylogenetic PCA
+ecomorph_phylo_pca <- phyl.pca(anolis_tree, trait_data)
+
+# view loadings
+ecomorph_phylo_pca$V
+
+# extract scores
+scores <- ecomorph_phylo_pca$S
+
+# plot the phylogenetic PCA
+plot(PC2~PC1, scores)
+
+# add colors to ecomorph data
+morph_data$ecomorphcol[morph_data$ecomorph == "TG"] <- "orange"
+morph_data$ecomorphcol[morph_data$ecomorph == "GB"] <- "green"
+morph_data$ecomorphcol[morph_data$ecomorph == "CG"] <- "blue"
+morph_data$ecomorphcol[morph_data$ecomorph == "TC"] <- "red"
+morph_data$ecomorphcol[morph_data$ecomorph == "Tw"] <- "purple"
+morph_data$ecomorphcol[morph_data$ecomorph == "Tr"] <- "pink"
+
+# color points by ecomorph and add a legend
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Principal Components Analysis")
+legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+
+# this PCA looks more reasonable!
+```
+
