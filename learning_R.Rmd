@@ -8,6 +8,7 @@ output: html_document
 
 ```{r}
 # load the data into R
+# data comes from chapter 1 of Phylogenetic Comparative Methods in R (Revell & Harmon)
 trait_data <- read.csv("anole.data.csv") # this dataset has information about trait values for different Anole species
 morph_data <- read.csv("ecomorph.csv") # this dataset has information about which species correspond to which ecomorphs (an ecomorph is when different species share the same morphology due to shared habitat)
 ```
