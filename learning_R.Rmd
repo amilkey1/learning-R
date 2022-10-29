@@ -133,6 +133,160 @@ dev.off()
 # What if I wanted to color ecomorphs TG, GB, and CG the same color? How could you go about doing this?
 ```
 
+# Phylogenetic Independent Contrasts
+This idea was introduced in 1985 by Joe Felsenstein. Let's say that I want to figure out if bigger animals are better at retrieving objects than smaller objects. I take a group of dogs and cats and measure how good they are at retrieving objects.  Let's make up some data and analyze it:
+
+## an example
+```{r}
+# we can create columns of a data set using the c() function
+animal <- c("cat", "cat", "cat", "cat", "cat", "cat", "cat", "cat", "dog", "dog", "dog", "dog", "dog", "dog", "dog", "dog")
+species <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+retrieval_index <- c(0.1, 0.2, 0.15, 0.25, 0.3, 0.27, 0.28, 0.19, 0.9, 0.98, 0.8, 0.85, 0.89, 0.92, 0.93, 0.96)
+weight <- c(8, 9, 10, 8, 9, 10, 8.5, 8.9, 60, 75, 70, 71, 66, 75, 72, 73)
+
+# join the variables to create a data frame
+dat <- data.frame(animal, retrieval_index, weight, species)
+
+
+# let's view the data frame
+View(dat)
+
+# let's try running a linear regression on retrieval index vs weight
+# "lm" stands for "linear model"
+lmDat <- lm(dat$retrieval_index~dat$weight)
+# view the results
+summary(lmDat)
+
+# this summary shows us that there's a significant relationship between retrieval index and weight (p <<< 0.05) (a higher weight is significantly correlated to a higher retrieval index)
+
+# let's view our results as a scatterplot now
+plot(dat$retrieval_index~dat$weight, pch=16, xlab = "weight", ylab = "retrieval index")+
+  abline(lm(dat$retrieval_index~dat$weight), col="black")
+
+# now let's color the points by type of animal
+# create new color column
+dat$animal_color[dat$animal == "cat"] <- "green"
+dat$animal_color[dat$animal == "dog"] <- "blue"
+
+plot(dat$retrieval_index~dat$weight, col=dat$animal_color, pch=16, xlab = "weight", ylab = "retrieval index")+
+  abline(lm(dat$retrieval_index~dat$weight), col="black")+
+  legend("topleft", c("cat", "dog"), pch=16, pt.cex=1.0, col=c("green", "blue"))
+
+# it looks like dogs are clustered pretty tightly together, and so are cats
+# there are essentially two points in our scatterplot - dogs and cats
+# we can't treat these groups as independent
+# this is where independent contrasts come in
+# we would need the phylogeny of the animals we're studying
+# Joe Felsenstein pointed out that while the data between the species are not independent due to shared phylogenetic history, the differences (contrasts) between species are
+# to calculate an independent contrast, we would take the difference between two tip values and divide by variance (or use an R package to do it for us!)
+
+
+# let's correct for phylogeny now
+# we will need to read in the dog and cat phylogenetic tree (note that I just made up this tree)
+# to read in the tree, we will need to use the package ape
+# if you don't have this package installed, you will need to install it using install.packages("ape")
+# then load it (you have to load it each time you restart R, but you only have to install it once)
+library(ape)
+dog_cat_tree<-read.tree("dog_cat_tree.tre")
+
+# to do our analysis, we will also need the package "phytools"
+library(phytools)
+
+# let's start by plotting the tree we read in
+plotTree(dog_cat_tree)
+
+# let's see if our regression changes when we account for phylogeny
+# we need to first pull out the traits as vectors
+RI <- setNames(dat[,"retrieval_index"], rownames(dat))
+weight <- setNames(dat[,"weight"], rownames(dat))
+
+# compute the independent contrasts for SVL and HL
+pic_RI <- pic(RI, dog_cat_tree)
+pic_weight <- pic(weight, dog_cat_tree)
+
+# let's now fit a linear regression to these contrasts
+pic_lm <- lm(pic_RI~pic_weight+0) # the +0 indicates no intercept (don't worry about this for now)
+summary(pic_lm)
+# looks like our model is no longer significant (p > 0.05)
+# this means that when we take the phylogeny into account, there's no longer a significant correlation between weight and retrieval index
+
+# let's plot our contrasts as well
+par(mar=c(5.1,5.1,1.1,1.1)) # this sets the margins so our plot is more readable
+plot(pic_RI~pic_weight, xlab = "RI contrasts", ylab = "weight contrasts", pch=16)+
+  abline(h=0,lty="dotted")+ # these two lines add grid lines to the plot
+  abline(v=0,lty="dotted")+
+  abline(pic_lm,lwd=2,col="blue") # add our regression line from our contrasts analysis
+
+# now let's plot both the phylogenetic contrasts and the ordinary regression model
+par(mar=c(5.1,5.1,1.1,1.1)) # this sets the margins so our plot is more readable
+plot(dat$retrieval_index~dat$weight, xlab = "weight", ylab = "RI", pch=16)+
+  abline(h=0,lty="dotted")+ # these two lines add grid lines to the plot
+  abline(v=0,lty="dotted")+
+  abline(pic_lm,lwd=2,col="blue")+ # add our regression line from our contrasts analysis
+  abline(lmDat, lwd=2, col="red")+
+  legend("topleft", c("non-phylogenetic regression", "contrasts"), pch=16, pt.cex=1.0, col=c("red", "blue"))
+```
+
+## now let's try this with our anole data
+
+```{r}
+# let's load in our data again
+# we will also need to read in the Anole phylogenetic tree
+library(ape)
+trait_data <- read.csv("anole.data.csv", row.names=1, header=TRUE)
+morph_data <- read.csv("ecomorph.csv", row.names=1, header=TRUE, stringsAsFactors=TRUE)
+# the argument row.names=1 tells R the row names are in the first column of the data file
+# the argument header=TRUE tells R the first row of the data file contains the column names
+anolis_tree<-read.tree("Anolis.tre")
+
+# to do our analysis, we will also need the package "phytools"
+library(phytools)
+
+# let's start by plotting the tree we read in
+plotTree(anolis_tree)
+
+# this is pretty messy, but we can change the size of the font and the line width to make it a little more readable
+plotTree(anolis_tree, fsize=0.5, lwd=1)
+
+# let's start by running an ordinary linear regression on traits SVL and HL without accounting for phylogeny
+# we should also log transform our data to account for different body sizes (this attempts to normalize our data & make the statistics more valid)
+lmAnole <- lm(log(trait_data$SVL)~log(trait_data$HL))
+# view the results
+summary(lmAnole)
+
+# this regression is telling us there is a significant correlation between SVL and HL (p < 0.05)
+
+# let's see if this changes when we account for phylogeny
+# we need to first pull out SVL and HL as vectors
+SVL <- setNames(trait_data[,"SVL"], rownames(trait_data))
+HL <- setNames(trait_data[,"HL"], rownames(trait_data))
+
+# compute the independent contrasts for SVL and HL
+pic_SVL <- pic(log(SVL), anolis_tree)
+pic_HL <- pic(log(HL), anolis_tree)
+
+# let's now fit a linear regression to these contrasts
+pic_lmAnole <- lm(pic_SVL~pic_HL+0) # the +0 indicates no intercept (don't worry about this for now)
+summary(pic_lmAnole)
+
+# let's plot our contrasts as well
+plot(pic_SVL~pic_HL, xlab = "HL contrasts", ylab = "SVL contrasts")+
+  abline(h=0,lty="dotted")+ # these two lines add grid lines to the plot
+  abline(v=0,lty="dotted")+
+  abline(pic_lmAnole,lwd=2,col="blue") # add our regression line from our contrasts analysis
+
+# now let's plot the ordinary regression model
+plot(log(trait_data$SVL)~log((trait_data$HL)), xlab = "HL", ylab = "SVL", xlim = c(0, 5.0), ylim = c(0, 2.0))+
+  abline(lmAnole, lwd=2, col="red")+ # add regression line from original linear model
+  abline(pic_lmAnole, lwd=2, col="blue")+ # add regression line from contrasts analysis
+    abline(h=0,lty="dotted")+ # these two lines add grid lines to the plot
+  abline(v=0,lty="dotted")+
+  legend("bottomright", c("non-phylogenetic regression", "contrasts"), pch=16, pt.cex=1.0, col=c("red", "blue"))
+
+# Questions:
+# Try running the same PIC analysis on two more traits from this dataset. Does accounting for phylogeny change the significance of the result?
+```
+
 
 # Principal Components Analysis
 PCA is a technique for reducing the dimensionality of datasets, which makes them easier to interpret.
