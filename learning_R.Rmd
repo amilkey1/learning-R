@@ -206,7 +206,7 @@ plotTree(dog_cat_tree)
 RI <- setNames(dat[,"retrieval_index"], rownames(dat))
 weight <- setNames(dat[,"weight"], rownames(dat))
 
-# compute the independent contrasts for SVL and HL
+# compute the independent contrasts for RI and Weight
 pic_RI <- pic(RI, dog_cat_tree)
 pic_weight <- pic(weight, dog_cat_tree)
 
@@ -276,12 +276,14 @@ pic_lmAnole <- lm(pic_SVL~pic_HL+0) # the +0 indicates no intercept (don't worry
 summary(pic_lmAnole)
 
 # let's plot our contrasts as well
+par(mar=c(5.1,5.1,1.1,1.1))
 plot(pic_SVL~pic_HL, xlab = "HL contrasts", ylab = "SVL contrasts")+
   abline(h=0,lty="dotted")+ # these two lines add grid lines to the plot
   abline(v=0,lty="dotted")+
   abline(pic_lmAnole,lwd=2,col="blue") # add our regression line from our contrasts analysis
 
 # now let's plot the ordinary regression model
+par(mar=c(5.1,5.1,1.1,1.1))
 plot(log(trait_data$SVL)~log((trait_data$HL)), xlab = "HL", ylab = "SVL", xlim = c(0, 5.0), ylim = c(0, 2.0))+
   abline(lmAnole, lwd=2, col="red")+ # add regression line from original linear model
   abline(pic_lmAnole, lwd=2, col="blue")+ # add regression line from contrasts analysis
@@ -291,6 +293,28 @@ plot(log(trait_data$SVL)~log((trait_data$HL)), xlab = "HL", ylab = "SVL", xlim =
 
 # Questions:
 # Try running the same PIC analysis on two more traits from this dataset. Does accounting for phylogeny change the significance of the result?
+lmFooDuck <- lm(log(trait_data$LAM)~log(trait_data$FLL))
+summary(lmFooDuck)
+# let's see if this changes when we account for phylogeny
+# we need to first pull out SVL and HL as vectors
+LAM <- setNames(trait_data[,"LAM"], rownames(trait_data))
+FLL <- setNames(trait_data[,"FLL"], rownames(trait_data))
+
+# compute the independent contrasts for SVL and HL
+pic_LAM <- pic(log(LAM), anolis_tree)
+pic_FLL <- pic(log(FLL), anolis_tree)
+
+# let's now fit a linear regression to these contrasts
+pic_lmFooDuck <- lm(pic_LAM~pic_FLL+0) # the +0 indicates no intercept (don't worry about this for now)
+summary(pic_lmFooDuck)
+
+par(mar=c(5.1,5.1,1.1,1.1))
+plot(log(trait_data$LAM)~log((trait_data$FLL)), xlab = "FLL", ylab = "LAM", xlim = c(0, 5.0), ylim = c(0, 2.0))+
+   abline(lmFooDuck, lwd=2, col="red")+ 
+   abline(pic_lmFooDuck, lwd=2, col="blue")+
+   abline(h=0,lty="dotted")+ # these two lines add grid lines to the plot
+   abline(v=0,lty="dotted")+
+   legend("bottomright", c("non-phylogenetic regression", "contrasts"), pch=16, pt.cex=1.0, col=c("red", "blue"))
 ```
 
 
