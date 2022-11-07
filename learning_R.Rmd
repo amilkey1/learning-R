@@ -127,9 +127,15 @@ dev.off()
 
 # Questions:
 # Try making a scatterplot for two more traits. Can you add an informative x axis, y axis, and title? Does there seem to be a correlation between the traits?
+plot(trait_data$LAM~trait_data$FLL, xlab = "FLL", ylab = "LAM", main = "LAM vs FLL")
 # Can you color by ecomorph, using different colors?
+plot(trait_data$LAM~trait_data$FLL, xlab = "FLL", ylab = "LAM", main = "LAM vs FLL", pch=8, cex=0.8, col = morph_data$ecomorphcol)
 # Can you change the shape and size of the points?
+plot(trait_data$LAM~trait_data$FLL, xlab = "FLL", ylab = "LAM", main = "LAM vs FLL", pch=32, cex=0.6, col = morph_data$ecomorphcol)
 # Can you export this plot as a pdf?
+pdf(file = "/Users/ElenaKorte/Desktop/learning-R/LAM_vs_FLL.pdf")
+plot(trait_data$LAM~trait_data$FLL, xlab = "FLL", ylab = "LAM", main = "LAM vs FLL")
+dev.off()
 # What if I wanted to color ecomorphs TG, GB, and CG the same color? How could you go about doing this?
 ```
 
