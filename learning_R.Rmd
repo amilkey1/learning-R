@@ -319,7 +319,7 @@ plot(log(trait_data$LAM)~log((trait_data$FLL)), xlab = "FLL", ylab = "LAM", xlim
 
 
 # Principal Components Analysis
-PCA is a technique for reducing the dimensionality of datasets, which makes them easier to interpret.
+PCA is a technique for reducing the dimensionality of datasets, which makes them easier to interpret. In this example, let's see if species within an ecomorph type share similar morphology.
 
 ```{r}
 # let's read in the data again to start fresh
@@ -370,7 +370,7 @@ legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, co
 # we can also make the axis labels more informative
 # Let's make them display the amount of variation contained in that PC axis
 
-summary(PCA) # look at the "proportion of variance" column
+summary(pca) # look at the "proportion of variance" column
 # We can see that in this dataset, PC1 explains 90.75% of the variance, and PC2 explains 5.67% of the variance.
 
 # we can add those labels to our plot
@@ -395,6 +395,7 @@ dev.off()
 
 
 # Phylogenetic Principal Components Analysis
+Now, we are going to correct our PCA for phylogenetic relationships, like we talked about in the phylogenetic independent contrasts section.
 
 ```{r}
 # let's load in our data again
@@ -426,13 +427,15 @@ plotTree(anolis_tree, fsize=0.4, lwd=1)
 
 # now let's plot a phylogenetic PCA, where we take into account nonindependence of species when calulating the correlations between different traits
 # first, we need to make sure the anole tree and ecomorph dataset have the same number of species
+# we need to load the package geiger for this
+library(geiger)
 check1 <- name.check(anolis_tree, trait_data)
 check1
 # the OK tells us that the tree names match the trait data names
 
 check2 <- name.check(anolis_tree, morph_data)
 check2
-# now we can see that there are some differences between the data and the phylogeny - the ecomorph data has fewer species than the phylogeny
+# now we can see that there are some differences between the data and the phylogeny - the ecomorph data have fewer species than the phylogeny
 
 # we need to prune all the taxa that are present in the phylogeny but not in the ecomorph data frame using the function drop.tip
 anolis_tree<-drop.tip(anolis_tree, check2$tree_not_data)
@@ -452,7 +455,9 @@ check3
 ecomorph_phylo_pca <- phyl.pca(anolis_tree, trait_data)
 
 # view loadings
-ecomorph_phylo_pca$V
+ecomorph_phylo_pca
+
+# which traits load most strongly on PC1 and PC2?
 
 # extract scores
 scores <- ecomorph_phylo_pca$S
@@ -469,9 +474,19 @@ morph_data$ecomorphcol[morph_data$ecomorph == "Tw"] <- "purple"
 morph_data$ecomorphcol[morph_data$ecomorph == "Tr"] <- "pink"
 
 # color points by ecomorph and add a legend
-plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Principal Components Analysis")
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis")
 legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
 
 # this PCA looks more reasonable!
+
+# we can save this as a pdf
+pdf("phylo_PCA.pdf")
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis")
+legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+dev.off()
+
+# questions:
+# Can you add labels to the axes to show how much variation is encompassed in each PC?
+# Can you plot PC4 vs PC3?
 ```
 
