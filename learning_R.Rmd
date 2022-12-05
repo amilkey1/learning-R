@@ -387,6 +387,9 @@ dev.off()
 
 # to think about:
 # How can we plot PC3 vs PC4? How about PC1 vs PC3?
+ plot(PC1 ~ PC3, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Principal Components Analysis", xlab = "PC1: 90.75% of variance", ylab = "PC3: 2.08% of variance")
+  legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+# let's save our plot as a pdf
 # What if I only wanted to analyze traits SVL, HL, and HLL in my PCA? How can we do this?
 # What traits seem to be contributing most to variance in this dataset?
 # Do species of the same ecomorph tend to show similar traits? How can we tell? Did we expect ecomorphs to show similar traits? Why does our plot not show this expected result?
@@ -474,19 +477,28 @@ morph_data$ecomorphcol[morph_data$ecomorph == "Tw"] <- "purple"
 morph_data$ecomorphcol[morph_data$ecomorph == "Tr"] <- "pink"
 
 # color points by ecomorph and add a legend
+par(mar=c(5.1,5.1,1.1,1.1))
 plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis")
 legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
 
 # this PCA looks more reasonable!
-
+summary(ecomorph_phylo_pca)
 # we can save this as a pdf
 pdf("phylo_PCA.pdf")
-plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis")
+plot(PC2 ~ PC1, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis", xlab = "PC1: 89.11% of variance", ylab = "PC2: 6.85% of variance")
 legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
 dev.off()
 
 # questions:
 # Can you add labels to the axes to show how much variation is encompassed in each PC?
 # Can you plot PC4 vs PC3?
+plot(PC4 ~ PC3, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis", xlab = "PC3: 2.03% of variance", ylab = "PC4: 1.51% of variance")
+legend("topleft", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+-------
+plot(PC1 ~ trait_data$HLL, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis", xlab = "HLL", ylab = "PC1: 89.11% of variance")
+legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
+
+plot(PC1 ~ trait_data$SVL, scores, col=morph_data$ecomorphcol, pch=16, cex=1.0, main = "Phylogenetic Principal Components Analysis", xlab = "HLL", ylab = "PC1: 89.11% of variance")
+legend("topright", c("TG", "GB", "CG", "TC", "Tw", "Tr"), pch=16, pt.cex=1.0, col=c("orange", "green", "blue", "red", "purple", "pink"))
 ```
 
